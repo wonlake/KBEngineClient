@@ -4,6 +4,6 @@
 
 namespace KBEngineClient
 {
-	static KEntityFactory<KRoleProxy> g_roleProxy("RoleProxy");
+	KEntityFactory<KRoleProxy>* g_roleProxy = new KEntityFactory<KRoleProxy>("RoleProxy");
 }
 

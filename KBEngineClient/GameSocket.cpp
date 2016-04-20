@@ -81,7 +81,7 @@ namespace KBEngineClient
 					}
 
 					// 检查消息体
-					if (stream.opsize() < msglen - 4)
+					if ((int)stream.opsize() < msglen - 4)
 					{
 						size_t pos = stream.rpos();
 						stream.rpos(pos - 4);
@@ -103,6 +103,11 @@ namespace KBEngineClient
 					stream.safeClear(true);
 					std::cout << "msgid = " << msgid << " be ignored! msglen = " << msglen << std::endl;
 				}
+			}
+			else
+			{
+				if (!sock->m_bInWorking)
+					m_bConnected = false;
 			}
 		}
 
@@ -134,7 +139,7 @@ namespace KBEngineClient
 	{
 		m_strHost = host;
 		m_nPort = port;
-		bool bRet = sock->Start(host, port, FALSE);			
+		BOOL bRet = sock->Start(host, port, FALSE);			
 		if (bRet)
 			m_bConnected = true;
 		

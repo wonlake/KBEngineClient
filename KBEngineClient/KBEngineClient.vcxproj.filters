@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="头文件\Entity">
+      <UniqueIdentifier>{975e15c1-630f-4426-992b-c0ab15934643}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Entity">
+      <UniqueIdentifier>{43e369a2-675c-4056-a912-c96a0b90a3d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basic_types.h">
@@ -22,9 +28,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="KAbstractEntityFactory.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="KAccount.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="KBEMain.h">
@@ -75,14 +78,17 @@
     <ClInclude Include="KNetworkInterface.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="KRoleProxy.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="NetworkService.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="StringEncodingUtility.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="KAccount.h">
+      <Filter>头文件\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="KRoleProxy.h">
+      <Filter>头文件\Entity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -90,9 +96,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="KAbstractEntityFactory.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="KAccount.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="KBEMain.cpp">
@@ -137,9 +140,6 @@
     <ClCompile Include="KNetworkInterface.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="KRoleProxy.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -148,6 +148,12 @@
     </ClCompile>
     <ClCompile Include="StringEncodingUtility.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="KAccount.cpp">
+      <Filter>源文件\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="KRoleProxy.cpp">
+      <Filter>源文件\Entity</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

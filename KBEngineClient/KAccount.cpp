@@ -4,6 +4,6 @@
 
 namespace KBEngineClient
 {
-	static KEntityFactory<KAccount> g_account("Account");
+	KEntityFactory<KAccount>* g_account = new KEntityFactory<KAccount>("Account");
 }
 
