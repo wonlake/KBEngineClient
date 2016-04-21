@@ -6,6 +6,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iostream>
+#include <thread>
 
 #pragma comment( lib, "MSWSock.lib" )
 #pragma comment( lib, "WS2_32.lib" )
@@ -18,22 +19,18 @@ NetworkService::NetworkService( BYTE minorVer, BYTE majorVer )
 	{
 		ExitProcess( -1 );
 	}
-
-	InitializeCriticalSection(cs.get());
 }
-
 
 NetworkService::~NetworkService(void)
 {
-	if (m_bInWorking)
+	if (m_bConnected)
 	{
-		PostQueuedCompletionStatus(m_hIOCP, 0, 0, NULL);
+		m_bConnected = false;
+		PostQueuedCompletionStatus(m_hIOCP, 0, NULL, NULL);
+	
+		std::lock_guard<std::mutex> guard(m_mutexForExit);	
 	}
 
-	while(m_bInWorking && !m_bWorkingEnd)
-	{
-		Sleep(1);
-	}
 	WSACleanup();
 }
 
@@ -84,8 +81,16 @@ BOOL NetworkService::CreateServer( const char* addr, short port )
 	PostAccept( sListen );
 
 	DWORD dwThreadId = 0;
-	CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)ThreadServerWorker,
-		(LPVOID)this, 0, &dwThreadId );
+	//CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)ThreadServerWorker,
+	//	(LPVOID)this, 0, &dwThreadId );
+	m_thread = std::make_shared<std::thread>(
+		[&]()
+	{
+		this->ThreadServerWorker();
+	}
+	);
+	m_thread->detach();
+
 	return TRUE;
 }
 
@@ -117,6 +122,7 @@ BOOL NetworkService::CreateClient( const char* addr, short port )
 		return FALSE;
 	}
 
+	m_bConnected = true;
 	m_sServer	   = sServer;
 
 	m_lstHandleData.push_back(std::make_shared<HANDLE_DATA>());
@@ -129,8 +135,15 @@ BOOL NetworkService::CreateClient( const char* addr, short port )
 
 	PostRecv( pServer->s );
 	DWORD dwThreadId = 0;
-	CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)ThreadClientWorker,
-		(LPVOID)this, 0, &dwThreadId );
+	//CreateThread( NULL, 0, (LPTHREAD_START_ROUTINE)ThreadClientWorker,
+	//	(LPVOID)this, 0, &dwThreadId );
+	m_thread = std::make_shared<std::thread>(
+		[&]()
+		{
+			this->ThreadClientWorker(); 
+		}
+	);
+	m_thread->detach();
 
 	return TRUE;
 }
@@ -165,14 +178,14 @@ VOID NetworkService::SendMsg( char* pMsg, unsigned int dwSize )
 
 void NetworkService::RecvMsg(std::string& msg)
 {
-	if (TryEnterCriticalSection(cs.get()))
+	if(m_mutexForTransferMsg.try_lock())
 	{
 		if (!m_ServerHandleData->listRecv->empty())
 		{
 			msg = std::move(m_ServerHandleData->listRecv->front());
 			m_ServerHandleData->listRecv->pop();
 		}
-		LeaveCriticalSection(cs.get());
+		m_mutexForTransferMsg.unlock();
 	}
 }
 
@@ -188,7 +201,7 @@ VOID NetworkService::PostRecv( SOCKET s )
 
 IO_DATA* NetworkService::GetIOData()
 {
-	EnterCriticalSection(cs.get());
+	std::lock_guard<std::mutex> guard(m_mutexForIoDatas);
 	IO_DATA* pData = nullptr;
 
 	if (m_lstIoDatasUnused.empty())
@@ -203,13 +216,12 @@ IO_DATA* NetworkService::GetIOData()
 	pData = m_lstIoDatasUsed.back().get();
 	ZeroMemory(pData, sizeof(IO_DATA));
 	
-	LeaveCriticalSection(cs.get());
 	return pData;
 }
 
 VOID NetworkService::ReleaseIOData( IO_DATA* pData )
 {
-	EnterCriticalSection(cs.get());
+	std::lock_guard<std::mutex> guard(m_mutexForIoDatas);
 	auto t = std::find_if(m_lstIoDatasUsed.begin(), m_lstIoDatasUsed.end(), 
 		[&](std::shared_ptr<IO_DATA> data)
 	{
@@ -220,7 +232,6 @@ VOID NetworkService::ReleaseIOData( IO_DATA* pData )
 	);
 	if (t != m_lstIoDatasUsed.end())
 		m_lstIoDatasUsed.erase(t);
-	LeaveCriticalSection(cs.get());
 }
 
 void NetworkService::RemoveHandleData(HANDLE_DATA* pData)
@@ -237,12 +248,12 @@ void NetworkService::RemoveHandleData(HANDLE_DATA* pData)
 		m_lstHandleData.erase(t);
 }
 
-VOID WINAPI NetworkService::ThreadServerWorker( LPVOID lParam )
+void NetworkService::ThreadServerWorker()
 {
-	NetworkService* pNetworkService = (NetworkService*)lParam;
-	pNetworkService->m_bInWorking = TRUE;
+	NetworkService* pNetworkService = this;
+	std::lock_guard<std::mutex> guard(pNetworkService->m_mutexForExit);
 
-	while( !pNetworkService->m_bWorkingEnd )
+	while( true )
 	{
 		HANDLE_DATA* pHandle = NULL;
 		IO_DATA*	 pData	 = NULL;
@@ -315,18 +326,14 @@ VOID WINAPI NetworkService::ThreadServerWorker( LPVOID lParam )
 			}
 		}
 	}
-
-	pNetworkService->m_bInWorking = FALSE;
-	pNetworkService->m_bWorkingEnd = TRUE;
-
-	pNetworkService->m_sListen = NULL;
 }
 
-VOID WINAPI NetworkService::ThreadClientWorker( LPVOID lParam )
+void NetworkService::ThreadClientWorker()
 {
-	NetworkService* pNetworkService = (NetworkService*)lParam;
-	pNetworkService->m_bInWorking = TRUE;
-	while( !pNetworkService->m_bWorkingEnd )
+	NetworkService* pNetworkService = this;
+	std::lock_guard<std::mutex> guard(pNetworkService->m_mutexForExit);
+
+	while( m_bConnected )
 	{
 		HANDLE_DATA* pHandle = NULL;
 		IO_DATA*	 pData	 = NULL;
@@ -356,11 +363,12 @@ VOID WINAPI NetworkService::ThreadClientWorker( LPVOID lParam )
 				memcpy(pHandle->BufRecv,
 					pData->BufPackage, dwSizeTransfer);
 				pHandle->dwSizeRecv = dwSizeTransfer;
-				EnterCriticalSection(pNetworkService->cs.get());
-				pHandle->listRecv->push(std::string());
-				pHandle->listRecv->back().assign(pHandle->BufRecv,
-					pHandle->BufRecv + pHandle->dwSizeRecv);
-				LeaveCriticalSection(pNetworkService->cs.get());
+				{
+					std::lock_guard<std::mutex> guard(m_mutexForTransferMsg);
+					pHandle->listRecv->push(std::string());
+					pHandle->listRecv->back().assign(pHandle->BufRecv,
+						pHandle->BufRecv + pHandle->dwSizeRecv);
+				}
 				pNetworkService->ReleaseIOData(pData);
 				std::cout << "收到数据大小:" << pHandle->listRecv->back().size() << std::endl;
 				pNetworkService->PostRecv(pHandle->s);
@@ -378,7 +386,5 @@ VOID WINAPI NetworkService::ThreadClientWorker( LPVOID lParam )
 			}
 		}
 	}
-
-	pNetworkService->m_bInWorking = FALSE;
-	pNetworkService->m_bWorkingEnd = TRUE;
+	std::cout << "^^^^^^^^^^^^^^^^^^^^^^^^^ client exit!\n";
 }

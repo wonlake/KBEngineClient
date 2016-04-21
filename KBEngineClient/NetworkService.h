@@ -12,6 +12,8 @@
 #include <string>
 #include <stack>
 #include <list>
+#include <thread>
+#include <mutex>
 
 #define MAX_BUFFER_SIZE	 4096
 #define MAX_PACKAGE_SIZE 1024
@@ -49,11 +51,12 @@ public:
 	HANDLE		m_hIOCP = NULL;
 	BOOL		m_bServer = FALSE;
 
-	BOOL		m_bInWorking = FALSE;
-	BOOL		m_bWorkingEnd = FALSE;
-
 	SOCKET		m_sServer = 123;
 	SOCKET		m_sListen = NULL;
+
+	BOOL		m_bConnected = FALSE;
+
+	std::shared_ptr<std::thread> m_thread;
 
 	std::shared_ptr<HANDLE_DATA> m_ServerHandleData;
 	std::list<std::shared_ptr<HANDLE_DATA> > m_lstHandleData;
@@ -61,16 +64,18 @@ public:
 	std::list<std::shared_ptr<IO_DATA> > m_lstIoDatasUsed;
 	std::stack<std::shared_ptr<IO_DATA> > m_lstIoDatasUnused;
 
-	std::shared_ptr<CRITICAL_SECTION> cs = std::make_shared<CRITICAL_SECTION>();
+	std::mutex m_mutexForExit;
+	std::mutex m_mutexForIoDatas;
+	std::mutex m_mutexForTransferMsg;
 
 public:
 	NetworkService( BYTE minorVer = 2, BYTE majorVer = 2 );
 	~NetworkService(void);
 
 private:
-	static VOID WINAPI ThreadServerWorker( LPVOID lParam );
+	void ThreadServerWorker();
 
-	static VOID WINAPI ThreadClientWorker( LPVOID lParam );
+	void ThreadClientWorker();
 
 	IO_DATA* GetIOData();
 

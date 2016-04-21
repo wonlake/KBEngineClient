@@ -106,7 +106,7 @@ namespace KBEngineClient
 			}
 			else
 			{
-				if (!sock->m_bInWorking)
+				if (!sock->m_bConnected)
 					m_bConnected = false;
 			}
 		}
