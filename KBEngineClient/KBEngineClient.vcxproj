@@ -148,7 +148,6 @@
     <ClInclude Include="GameSocket.h" />
     <ClInclude Include="KAbstractEntityFactory.h" />
     <ClInclude Include="KAccount.h" />
-    <ClInclude Include="KBEMain.h" />
     <ClInclude Include="KBEngineApp.h" />
     <ClInclude Include="KBEngineArgs.h" />
     <ClInclude Include="KBundle.h" />
@@ -172,7 +171,6 @@
     <ClCompile Include="GameSocket.cpp" />
     <ClCompile Include="KAbstractEntityFactory.cpp" />
     <ClCompile Include="KAccount.cpp" />
-    <ClCompile Include="KBEMain.cpp" />
     <ClCompile Include="KBEngineApp.cpp" />
     <ClCompile Include="KBEngineArgs.cpp" />
     <ClCompile Include="KBundle.cpp" />

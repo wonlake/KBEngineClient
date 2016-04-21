@@ -30,9 +30,6 @@
     <ClInclude Include="KAbstractEntityFactory.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="KBEMain.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="KBEngineApp.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -96,9 +93,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="KAbstractEntityFactory.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="KBEMain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="KBEngineApp.cpp">

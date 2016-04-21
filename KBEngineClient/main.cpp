@@ -1,7 +1,6 @@
 #include <thread>
 #include <iostream>
-
-#include "KBEMain.h"
+#include "KBEngineApp.h"
 
 int main()
 {
@@ -9,12 +8,21 @@ int main()
 	//bool bOk = nc.connectionServer("192.168.1.128", 20013);
 	//nc.connect("127.0.0.1", 9999);
 	using namespace KBEngineClient;
+	
+	KBEngineArgs args;
 
-	KBEMain m;
-	m.ip = "127.0.0.1";
-	//m.ip = "192.168.1.132";
-	m.InitKBEngine();
+	args.ip					= "192.168.1.132";
+	args.port				= 20013;
+	args.clientType			= CLIENT_TYPE::CLIENT_TYPE_MINI;
+	args.persistentDataPath = "Application.persistentDataPath";
+	args.syncPlayer			= true;
+	args.threadUpdateHZ		= 10;
+	args.useAliasEntityID	= true;
+	args.SEND_BUFFER_MAX	= KNetworkInterface::TCP_PACKET_MAX;
+	args.RECV_BUFFER_MAX	= KNetworkInterface::TCP_PACKET_MAX;
+	args.isMultiThreads		= false;
 
+	KBEngineApp::create(args);
 	KBEngineApp& app = KBEngineApp::instance();
 	app.login("test", "123456", std::string("kbeplugin"));
 
