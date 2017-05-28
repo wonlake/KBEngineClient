@@ -19,7 +19,7 @@ namespace KBEngineClient
 		{
 			std::cout << "I'm Account!" << std::endl;
 			MemoryStream s;
-			baseCall("reqCreateRoleProxy", s);
+			//baseCall("reqCreateAccountProxy", s);
 		}
 
 		void onUpdatePropertys(MemoryStream& s)

@@ -11,7 +11,7 @@ int main()
 	
 	KBEngineArgs args;
 
-	args.ip					= "192.168.1.132";
+	args.ip					= "127.0.0.1";
 	args.port				= 20013;
 	args.clientType			= CLIENT_TYPE::CLIENT_TYPE_MINI;
 	args.persistentDataPath = "Application.persistentDataPath";
@@ -57,7 +57,7 @@ int main()
 			s << "wonderful";
 			s << (char)1;
 			s << (int)100001;
-			app._entities[app._entity_id]->baseCall("reqCreateRole", s);
+			app._entities[app._entity_id]->baseCall("reqCreatePlayer", s);
 		}
 	}
 	
